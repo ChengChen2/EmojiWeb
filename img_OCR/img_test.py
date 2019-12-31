@@ -36,7 +36,8 @@ for filename in os.listdir(img_path):
         else:
             img_histogram(img)
             img_num += 1
-    
+  
+  
 '''
 for i in range(img_num):
     img = cv2.imread(str(i) + '.jpg')
