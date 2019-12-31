@@ -10,12 +10,13 @@ img_num = 0
 #np.set_printoptions(threshold=np.inf)
 
 def img_histogram(input_img):
-    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    img_gray = cv2.cvtColor(input_img, cv2.COLOR_BGR2GRAY)
     values = img_gray.ravel()
-    print(np.var(values))
+    #print(np.var(values))
+    print(np.argmax(np.bincount(values)))
     plt.figure(figsize=(10,5))
     plt.subplot(1,2,1)
-    plt.imshow(img)
+    plt.imshow(input_img)
     plt.subplot(1,2,2)
     plt.hist(values, bins=256, range=[0,256])
     plt.title('Histogram figure: '+ str(img_num))

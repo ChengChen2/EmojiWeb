@@ -6,9 +6,16 @@ import os
 import numpy as np
 from matplotlib import pyplot as plt 
 
+# Static values
+pixel_thresh_ub = 235
+pixel_thresh_lb = 20
+img_path = "all_class"
+
 # OCR options 
-custom_oem_psm_config = r'--psm 11 --oem 2'
+custom_oem_psm_config_0 = r'--psm 6 --oem 2'
+custom_oem_psm_config_1 = r'--psm 11 --oem 2'
 custom_lang = 'chi_sim'
+
 
 # ------------------------- Functions ---------------------------------------------
 def kmeans(input_img, k, i_val):
@@ -24,18 +31,37 @@ def kmeans(input_img, k, i_val):
 
     return centers[i_val].astype(int), centers, hist
     
-def text_detection(img):
-    _, thresh = cv2.threshold(img, kmeans(input_img=img, k=8, i_val=2)[0], 255, cv2.THRESH_BINARY)
-    print(str(filename) + '. :\n')
-    text = pytesseract.image_to_string(thresh, lang=custom_lang, config=custom_oem_psm_config) 
-    print(text + '\n-------------kmeans----------------\n') 
-    text = pytesseract.image_to_string(img, lang=custom_lang, config=custom_oem_psm_config) 
-    print(text + '\n###############non-kmeans##############\n')
+def img_text_detection(input_img, img_name):
+    img_type = img_histogram_classify(input_img)
+    if(img_type == 0):
+        text = pytesseract.image_to_string(input_img, lang=custom_lang, config=custom_oem_psm_config_0)
+    elif(img_type == 1):
+        _, thresh = cv2.threshold(input_img, kmeans(input_img, k=8, i_val=2)[0], 255, cv2.THRESH_BINARY)
+        text = pytesseract.image_to_string(thresh, lang=custom_lang, config=custom_oem_psm_config_1)
+    else:
+        text = 'classificaiton error - unknow image type'
+    
+    print(img_name + '. :\n')
+    print(text + '\n##########################\n') 
+    plt.imshow(input_img)
+    plt.title('Img:' + img_name + ' Type:' + str(img_type))
+    plt.show()
+    
+def img_histogram_classify(input_img):
+    img_gray = cv2.cvtColor(input_img, cv2.COLOR_BGR2GRAY)
+    pixel_values = img_gray.ravel()
+    pixel_max = np.argmax(np.bincount(pixel_values))
+    if(pixel_max >= pixel_thresh_ub or pixel_max <= pixel_thresh_lb):
+        return 0
+    else:
+        return 1 
+        
+
     
 ####################################################################################
 
 
-img_path = "class1"
+# ---------------------------- Main ---------------------------------
 for filename in os.listdir(img_path):
     if filename.endswith('jpg') or filename.endswith('png'):
         img = cv2.imread(filename)
@@ -44,9 +70,9 @@ for filename in os.listdir(img_path):
             if(img is None):
                 print("wrong img format")
             else:
-                text_detection(img)
+                img_text_detection(img, filename)
         else:
-            text_detection(img)
+            img_text_detection(img, filename)
             
     
     
